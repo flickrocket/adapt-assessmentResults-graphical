@@ -1,0 +1,33 @@
+    <script>
+        function printResult() {
+            const img = new Image();
+
+            // get the chart instance data as url
+            img.src = window.myChart.getDataURL({
+                type: 'png', // can be jpeg or png
+                backgroundColor: '#fff', // hex color defining the background of the chart
+            });
+
+            // opening new tab
+            const imgTab = window.open('');
+            // rendering the base64 image retrieved
+            imgTab.document.write(`
+                <head>
+                    <title>Assessment Result</title>
+                </head>
+                <img src='${img.src}'/>
+            `);
+
+            setTimeout( function() {
+                imgTab.print();
+            }, 500)
+        }
+    </script>
+    
+    <div class="component__inner assessmentResults-graphical__inner">
+    {{> component this}}
+    <div class="component__widget assessmentResults-graphical__widget"></div>
+    <div id="resultGraphics" class="myDivToPrint" style="width: 600px; height: 400px;"></div>
+    <button id="chartPrintButton" class="btn-text btn__action js-btn-action is-full-width" onclick="printResult()" style="display:none">Print</button>
+
+</div>
