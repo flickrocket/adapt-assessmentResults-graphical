@@ -5,7 +5,7 @@
   "component" : "assessmentResults-graphical",
   "targetAttribute": "_assessmentResults-graphical",
 
-  "version": "1.0.0",
+  "version": "1.0.1",
   "framework": ">=2",
   "description": "Show a bar chart with all assessment results",
   "main": "/js/adapt-assessmentResults-graphical.js",
