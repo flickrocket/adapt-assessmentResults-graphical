@@ -63,7 +63,7 @@ export default class AssessmentResultsGraphicalModel extends ComponentModel {
 
   onAssessmentComplete() {
 
-    if (!this.isComplete) return;
+    if (!this.isComplete()) return;
 
     var assessmentArticleModels = Adapt.assessment.get();
     if (assessmentArticleModels.length === 0) return;
@@ -111,47 +111,152 @@ export default class AssessmentResultsGraphicalModel extends ComponentModel {
 
     var printButton = document.getElementById('chartPrintButton');
     printButton.style.display = "block";
+
+    // Show Feedback
+    this.setFeedbackBand();
+
+    this.checkRetryEnabled();
+
+    this.setFeedbackText();
+
+    this.toggleVisibility(true);
   }
 
-  // setFeedbackBand(state) {
-  //   const scoreProp = state.isPercentageBased ? 'scoreAsPercent' : 'score';
-  //   const bands = _.sortBy(this.get('_bands'), '_score');
+  // setFeedback() {
 
-  //   for (let i = (bands.length - 1); i >= 0; i--) {
-  //     const isScoreInBandRange = (state[scoreProp] >= bands[i]._score);
-  //     if (!isScoreInBandRange) continue;
+  //   var completionBody = this.model.get("_completionBody");
+  //   var feedbackBand = this.getFeedbackBand();
 
-  //     this.set('_feedbackBand', bands[i]);
-  //     break;
+  //   var state = this.model.get("_state");
+  //   state.feedbackBand = feedbackBand;
+  //   state.feedback = feedbackBand.feedback;
+
+  //   completionBody = this.stringReplace(completionBody, state);
+
+  //   this.model.set("body", completionBody);
+  // }
+
+  // getFeedbackBand() {
+  //   var state = this.model.get("_state");
+
+  //   var bands = this.model.get("_bands");
+  //   var scoreAsPercent = state.scoreAsPercent;
+    
+  //   for (var i = (bands.length - 1); i >= 0; i--) {
+  //       if (scoreAsPercent >= bands[i]._score) {
+  //           return bands[i];
+  //       }
   //   }
+
+  //   return "";
   // }
 
-  // checkRetryEnabled(state) {
-  //   const assessmentModel = Adapt.assessment.get(state.id);
-  //   if (!assessmentModel.canResetInPage()) return false;
+  // stringReplace(string, context) {
+  //   //use handlebars style escaping for string replacement
+  //   //only supports unescaped {{{ attributeName }}} and html escaped {{ attributeName }}
+  //   //will string replace recursively until no changes have occured
 
-  //   const feedbackBand = this.get('_feedbackBand');
-  //   const isRetryEnabled = (feedbackBand && feedbackBand._allowRetry) !== false;
-  //   const isAttemptsLeft = (state.attemptsLeft > 0 || state.attemptsLeft === 'infinite');
-  //   const showRetry = isRetryEnabled && isAttemptsLeft && (!state.isPass || state.allowResetIfPassed);
+  //   var changed = true;
+  //   while (changed) {
+  //       changed = false;
+  //       for (var k in context) {
+  //           var contextValue = context[k];
 
-  //   this.set({
-  //     _isRetryEnabled: showRetry,
-  //     retryFeedback: showRetry ? this.get('_retry').feedback : ''
-  //   });
+  //           switch (typeof contextValue) {
+  //           case "object":
+  //               continue;
+  //           case "number":
+  //               contextValue = Math.floor(contextValue);
+  //               break;
+  //           }
+
+  //           var regExNoEscaping = new RegExp("((\\{\\{\\{){1}[\\ ]*"+k+"[\\ ]*(\\}\\}\\}){1})","g");
+  //           var regExEscaped = new RegExp("((\\{\\{){1}[\\ ]*"+k+"[\\ ]*(\\}\\}){1})","g");
+
+  //           var preString = string;
+
+  //           string = string.replace(regExNoEscaping, contextValue);
+  //           var escapedText = $("<p>").text(contextValue).html();
+  //           string = string.replace(regExEscaped, escapedText);
+
+  //           if (string != preString) changed = true;
+
+  //       }
+  //   }
+
+  //   return string;
   // }
 
-  // setFeedbackText() {
-  //   const feedbackBand = this.get('_feedbackBand');
+  //TODO
+  setFeedbackBand() {
+    
+    let percentageBased = false; // Set to true and handle as such if at elast one assessment is percentage based
 
-  //   // ensure any handlebars expressions in the .feedback are handled...
-  //   const feedback = feedbackBand ? Handlebars.compile(feedbackBand.feedback)(this.toJSON()) : '';
+    // Determine total score
+    var assessmentArticleModels = Adapt.assessment.get();
+    
+    let totalPercentScore = 0;
+    let totalNonPercentScore = 0;
+    let totalMaxScore = 0;
 
-  //   this.set({
-  //     feedback,
-  //     body: this.get('_completionBody')
-  //   });
-  // }
+    for (var i = 0, l = assessmentArticleModels.length; i < l; i++) {
+        var articleModel = assessmentArticleModels[i];
+        var assessmentState = articleModel.getState();
+        if (assessmentState.isPercentageBased) {
+          percentageBased = true;
+        }
+        totalNonPercentScore += assessmentState.score;
+        totalPercentScore += assessmentState.scoreAsPercent;
+        totalMaxScore += assessmentState.maxScore;
+    }
+
+    let finalScore = percentageBased ? totalPercentScore : totalNonPercentScore;
+    let finalMaxScore = percentageBased ? 100 : totalMaxScore;
+
+    this.set({
+      score: finalScore,
+      maxScore: finalMaxScore
+    });
+
+    const bands = _.sortBy(this.get('_bands'), '_score');
+
+    for (let i = (bands.length - 1); i >= 0; i--) {
+      const isScoreInBandRange = (finalScore >= bands[i]._score);
+      if (!isScoreInBandRange) continue;
+
+      this.set('_feedbackBand', bands[i]);
+      break;
+    }
+  }
+
+  // TODO
+  checkRetryEnabled() {
+    // const assessmentModel = Adapt.assessment.get(state.id);
+    // if (!assessmentModel.canResetInPage()) return false;
+
+    // const feedbackBand = this.get('_feedbackBand');
+    // const isRetryEnabled = (feedbackBand && feedbackBand._allowRetry) !== false;
+    // const isAttemptsLeft = (state.attemptsLeft > 0 || state.attemptsLeft === 'infinite');
+    // const showRetry = isRetryEnabled && isAttemptsLeft && (!state.isPass || state.allowResetIfPassed);
+
+    // this.set({
+    //   _isRetryEnabled: showRetry,
+    //   retryFeedback: showRetry ? this.get('_retry').feedback : ''
+    // });
+  }
+
+  //TODO
+  setFeedbackText() {
+    const feedbackBand = this.get('_feedbackBand');
+
+    // ensure any handlebars expressions in the .feedback are handled...
+    const feedback = feedbackBand ? Handlebars.compile(feedbackBand.feedback)(this.toJSON()) : '';
+
+    this.set({
+      feedback,
+      body: this.get('_completionBody')
+    });
+  }
 
   setVisibility() {
     if (!Adapt.assessment) return;

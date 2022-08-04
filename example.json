@@ -13,7 +13,7 @@
     "_pageLevelProgress": {
       "_isEnabled": true
     },
-    "_completionBody": "This component you're reading is a total results component.<br>You have finished the assessments.<br>You scored {{{scoreAsPercent}}}%. {{{feedback}}}",
+    "_completionBody": "This component you're reading is a graphical total results component.<br>You have finished the assessments.<br><br>You scored {{{scoreAsPercent}}}%.<br><br> {{{feedback}}}",
     "_bands": [
       {
         "_score": 0,
