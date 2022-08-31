@@ -32,14 +32,17 @@ export default class AssessmentResultsGraphicalModel extends ComponentModel {
   isInProgress() {
     var isInProgress = false;
 
-    var assessmentArticleModels = Adapt.assessment.get();
-    if (assessmentArticleModels.length === 0) return;
+    let assessment = Adapt.assessment;
+    if (assessment) {
+      var assessmentArticleModels = assessment.get();
+      if (assessmentArticleModels.length === 0) return;
 
-    for (var i = 0, l = assessmentArticleModels.length; i < l; i++) {
-        var articleModel = assessmentArticleModels[i];
-        var assessmentState = articleModel.getState();
-        isInProgress = assessmentState.attemptInProgress;
-        if (!isInProgress) break;
+      for (var i = 0, l = assessmentArticleModels.length; i < l; i++) {
+          var articleModel = assessmentArticleModels[i];
+          var assessmentState = articleModel.getState();
+          isInProgress = assessmentState.attemptInProgress;
+          if (!isInProgress) break;
+      }
     }
 
     return isInProgress;
@@ -48,14 +51,17 @@ export default class AssessmentResultsGraphicalModel extends ComponentModel {
   isComplete() {
     var isComplete = false;
 
-    var assessmentArticleModels = Adapt.assessment.get();
-    if (assessmentArticleModels.length === 0) return;
+    let assessment = Adapt.assessment;
+    if (assessment) {
+      var assessmentArticleModels = assessment.get();
+      if (assessmentArticleModels.length === 0) return;
 
-    for (var i = 0, l = assessmentArticleModels.length; i < l; i++) {
-        var articleModel = assessmentArticleModels[i];
-        var assessmentState = articleModel.getState();
-        isComplete = assessmentState.isComplete;
-        if (!isComplete) break;
+      for (var i = 0, l = assessmentArticleModels.length; i < l; i++) {
+          var articleModel = assessmentArticleModels[i];
+          var assessmentState = articleModel.getState();
+          isComplete = assessmentState.isComplete;
+          if (!isComplete) break;
+      }
     }
 
     return isComplete;
@@ -65,13 +71,16 @@ export default class AssessmentResultsGraphicalModel extends ComponentModel {
 
     if (!this.isComplete()) return;
 
-    var assessmentArticleModels = Adapt.assessment.get();
+    var assessment = Adapt.assessment;
+    if (!assessment) return;
+
+    var assessmentArticleModels = assessment.get();
     if (assessmentArticleModels.length === 0) return;
 
     let assesmentNames = [];
     let assessmentScores = [];
 
-    for (var i = 0, l = assessmentArticleModels.length; i < l; i++) {
+    for (var i = 0; i < assessmentArticleModels.length;  i++) {
         var articleModel = assessmentArticleModels[i];
         var assessmentState = articleModel.getState();
         assesmentNames.push(assessmentState.id);
@@ -79,7 +88,10 @@ export default class AssessmentResultsGraphicalModel extends ComponentModel {
     }
 
     // Initialize the echarts instance based on the prepared dom
-    var myChart = echarts.init(document.getElementById('resultGraphics'));
+    var chartElement = document.getElementById('resultGraphics');
+    if (!chartElement) return;
+
+    var myChart = echarts.init(chartElement);
     if (!myChart) return;
 
     window.myChart = myChart;
